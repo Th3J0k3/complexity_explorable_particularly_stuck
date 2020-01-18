@@ -20,8 +20,8 @@ var world_width = 400,
 
 ;
 
-// fixed parameters 
-	
+// fixed parameters
+
 var N = 300, // # of agents
 	L = 64 , // world size
 	agentsize = 1,
@@ -30,18 +30,18 @@ var N = 300, // # of agents
 	agentcolor = "rgb(150,150,150)",
 	hiddenagentcolor = "rgb(230,230,230)",
 	structurecolor = "darkred",
-	agents = []; 
+	agents = [];
 
 // this are the default values for the slider variables
 
-var def_speed = 0.8, 
+var def_speed = 0.8,
 	def_noise = 0.8,
 	def_attraction = 0.05,
 	def_twist = 0.05,
 	def_twistmix = 0.0;
-	
+
 // parameter objects for the sliders
-	
+
 var v = {id:"speed", name: "speed", range: [0,1.4], value: def_speed};
 var sigma = {id:"wiggle", name: "wiggle", range: [0,agentsize], value: def_noise};
 var gamma = {id:"attraction", name: "atraction", range: [0,0.5*agentsize], value: def_attraction};
@@ -98,10 +98,10 @@ var world = d3.selectAll("#cxpbox_particularly-stuck_display").append("canvas")
 	.attr("class","explorable_display")
 
 
-var context = world.node().getContext("2d");	
+var context = world.node().getContext("2d");
 
 // this is the svg for the widgets
-	
+
 var controls = d3.selectAll("#cxpbox_particularly-stuck_controls").append("svg")
 	.attr("width",controlbox_width)
 	.attr("height",controlbox_height)
@@ -114,22 +114,22 @@ controls.append("g")
 
 controls.selectAll(".slider").data(sliders).enter().append(widget.sliderElement)
 	.attr("transform",function(d,i){return "translate("+slider_margin.left+","+(slider_margin.top+sbl.x(i))+")"});
-	
+
 controls.selectAll(".button").data(buttons).enter().append(widget.buttonElement)
-	.attr("transform",function(d,i){return "translate("+((button_x + button_margin.left)+bbl.x(i))+","+(button_margin.top + button_y)+")"});	
+	.attr("transform",function(d,i){return "translate("+((button_x + button_margin.left)+bbl.x(i))+","+(button_margin.top + button_y)+")"});
 
 controls.selectAll(".toggle").data(toggles).enter().append(widget.toggleElement)
-	.attr("transform",function(d,i){return "translate("+toggle_x+","+toggle_y+")"});	
+	.attr("transform",function(d,i){return "translate("+toggle_x+","+toggle_y+")"});
 
 /////////////////////////////////////////
-		
+
 // add agents to the scene
-	
+
 setup();
 
 // timer variable for the simulation
 
-var t; 
+var t;
 
 // functions for the action buttons
 
@@ -140,16 +140,19 @@ function setup(){
 	agents = d3.range(N).map(function(d,i){
 		var theta = Math.random() * 2 * Math.PI;
 		return {
-				x: Math.random()  * 2 * L -L, 
-				y: Math.random()  * 2 * L -L,
+				x: Math.random() * 2 * L -L,
+				y: L,
 				state: 1,
 				polarity: Math.random()
 		}
 	})
-	agents.push({x: 0, y: 0 ,state: 0});
-	
+	for(let f = -L; f < L; f++){
+		agents.push({x: f, y: -L ,state: 0});
+	}
+
+
 	context.fillStyle = "rgb(230,230,230)";
-	context.fillRect(0,0,world_width-1,world_height-1)		
+	context.fillRect(0,0,world_width-1,world_height-1)
 	agents.forEach(function(d){
 					context.moveTo(X(d[0]), Y(d[1]));
 					context.beginPath();
@@ -161,7 +164,7 @@ function setup(){
 
 function redraw(){
 	context.fillStyle = "rgb(230,230,230)";
-	context.fillRect(0,0,world_width-1,world_height-1)		
+	context.fillRect(0,0,world_width-1,world_height-1)
 	agents.forEach(function(d){
 					context.moveTo(X(d[0]), Y(d[1]));
 					context.beginPath();
@@ -180,40 +183,50 @@ function resetparameters(){
 }
 
 function finished(){
-	buttons[0].click();	
+	buttons[0].click();
 }
 
-function runsim(){	
-		
+
+function runsim(){
+
+// `v =` speed
+// gamma = attraction
+// delta = twist
+// sigma = wiggle
+
 	// make a step
 	var fin = 1;
 	agents.forEach(function(d){
-		if (d.state == 1)
-		{
-			var P = d.polarity < twistmix.value ? 1 : -1;	
+		if (d.state == 1) {
+			//var P = d.polarity < twistmix.value ? 1 : -1;
 			var r = Math.sqrt(d.x * d.x + d.y * d.y);
-			var dx =  v.value * dt * ( (- gamma.value * d.x + P * delta.value * d.y) / r ) + sigma.value * (Math.random()-0.5) * dt2 * Math.sqrt(v.value);
-			var dy =  v.value * dt * ( (- gamma.value * d.y - P * delta.value * d.x) / r ) + sigma.value * (Math.random()-0.5) ** dt2 * Math.sqrt(v.value);
-	
+			//var dx = v.value * dt * ( (- gamma.value * d.x + P * delta.value * d.y) / r ) + sigma.value * (Math.random()-0.5) * dt2 * Math.sqrt(v.value);
+			//var dy = v.value * dt * ( (- 0.1 - P * delta.value * d.x) ) + sigma.value * (Math.random()-0.5) ** dt2 * Math.sqrt(v.value);
+			var dx = 0
+			var dy = v.value * dt * ((0.02 * d.x)) * Math.sqrt(v.value);
+
 			var x_new= (d.x + dx);
 			var y_new= (d.y + dy);
-		
+
+			//?
 			if (x_new < - L || x_new > L) {dx *= -1 }
 			if (y_new < - L || y_new > L) {dy *= -1 }
 
-			d.x= (d.x + dx)
-			d.y= (d.y + dy)
+			d.x = (d.x + dx)
+			d.y = (d.y + dy)
 			statics = agents.filter(function(d){return d.state == 0});
 			var i = 0;
 
 			while(d.state == 1 && i<statics.length && fin == 1){
 				var a = statics[i];
-				if (( d.x - a.x ) * ( d.x - a.x ) + ( d.y - a.y ) * ( d.y - a.y ) < agentsize *  agentsize ) {
+					if (( d.x - a.x ) * ( d.x - a.x ) + ( d.y - a.y ) * ( d.y - a.y ) < agentsize *  agentsize ) {
 					d.state = 0; addagent()
+					/*
 					if ((d.x * d.x + d.y * d.y) > (L-2)*(L-2) ) {
 						finished();
-						fin = 0;	
-					}	
+						fin = 0;
+					}
+					*/
 				}
 				i++
 			}
@@ -222,10 +235,10 @@ function runsim(){
 
 
 
-	
+
 	// update stuff on screen
 	context.fillStyle = "rgb(230,230,230)";
-	context.fillRect(0,0,world_width-1,world_height-1)		
+	context.fillRect(0,0,world_width-1,world_height-1)
 	agents.forEach(function(d){
 					context.moveTo(X(d[0]), Y(d[1]));
 					context.beginPath();
@@ -233,19 +246,19 @@ function runsim(){
 										context.fillStyle = d.state ? (hide.value ? hiddenagentcolor : agentcolor) : structurecolor
 					context.fill()
 	})
-		
+
 }
 
 function addagent(){
 	var theta = Math.random() * 2 * Math.PI;
 	agents.push({
-			x:  L * Math.cos(theta), 
-			y:  L * Math.sin(theta),
+			x:  Math.random() * L * 2 -L,
+			y:  L,
 			state: 1,
 			polarity: Math.random()
 	})
 }
-		
 
-	
+
+
 })()
